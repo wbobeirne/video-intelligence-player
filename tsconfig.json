@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "strict": true,
+    "lib": ["DOM", "ES2017"]
+  },
+  "files": [
+    "script.ts",
+  ]
+}

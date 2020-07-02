@@ -1,0 +1,17 @@
+{
+  "name": "dale-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "start": "tsc && http-server",
+    "watch": "tsc-watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "tsc-watch": "^4.2.8",
+    "typescript": "^3.9.5"
+  }
+}

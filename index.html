@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #root {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #video-container {
+        position: relative;
+        width: 80vw;
+      }
+      #video {
+        width: 100%;
+        height: auto;
+      }
+      #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="video-container">
+        <video id="video" src="./video.mp4" controls></video>
+        <canvas id="canvas"></canvas>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
