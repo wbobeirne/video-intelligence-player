@@ -1,12 +1,7 @@
 // TS types
-interface SegmentTime {
-  nanos?: number;
-  seconds?: number;
-}
-
 interface Segment {
-  end_time_offset: SegmentTime;
-  start_time_offset: SegmentTime;
+  endTimeOffset: string;
+  startTimeOffset: string;
 }
 
 interface Coordinate {
@@ -30,20 +25,22 @@ interface PersonLandmark {
 interface PersonObject {
   attributes: any[];
   landmarks: PersonLandmark[];
-  time_offset: SegmentTime;
-  normalized_bounding_box: BoundingBox;
+  timeOffset: string;
+  normalizedBoundingbox: BoundingBox;
 }
 
 interface Data {
-  annotation_results: {
-    input_uri: string;
-    person_detection_annotations: {
-      tracks: {
-        segment: Segment;
-        timestamped_objects: PersonObject[];
+  response: {
+    annotationResults: {
+      input_uri: string;
+      personDetectionAnnotations: {
+        tracks: {
+          segment: Segment;
+          timestampedObjects: PersonObject[];
+        }[];
       }[];
     }[];
-  }[];
+  };
 }
 
 // Cast all these to avoid nulls
@@ -81,17 +78,17 @@ function renderFrame() {
 
   // Gather all the objects that are in display this frame
   const ct = videoEl.currentTime * 1e9;
-  const personsInFrame = data.annotation_results[0].person_detection_annotations.filter(
+  const personsInFrame = data.response.annotationResults[0].personDetectionAnnotations.filter(
     (pda) => {
       return segmentInFrame(pda.tracks[0].segment, ct);
     }
   );
   const frameObjects = personsInFrame.reduce<PersonObject[]>((prev, pda) => {
-    const idx = pda.tracks[0].timestamped_objects.findIndex((obj) => {
-      return nanos(obj.time_offset) > ct;
+    const idx = pda.tracks[0].timestampedObjects.findIndex((obj) => {
+      return nanos(obj.timeOffset) > ct;
     });
-    const frameObj = pda.tracks[0].timestamped_objects[idx]
-    const prevFrameObj = pda.tracks[0].timestamped_objects[idx - 1]
+    const frameObj = pda.tracks[0].timestampedObjects[idx]
+    const prevFrameObj = pda.tracks[0].timestampedObjects[idx - 1]
     let obj = frameObj
 
     // Exclude small objects, cause they're background
@@ -99,7 +96,7 @@ function renderFrame() {
     // If we have a previous frame to go off of, interpolate the data for max smoothness
     if (prevFrameObj && frameObj.landmarks && prevFrameObj.landmarks) {
       // Value between 0 and 1 that represents how hard to interpolate
-      const diff = (nanos(frameObj.time_offset) - ct) / (nanos(frameObj.time_offset) - nanos(prevFrameObj.time_offset))
+      const diff = (nanos(frameObj.timeOffset) - ct) / (nanos(frameObj.timeOffset) - nanos(prevFrameObj.timeOffset))
       obj = {
         ...obj,
         landmarks: obj.landmarks.map(lm => {
@@ -119,8 +116,8 @@ function renderFrame() {
     }
 
     // Uncomment for uninterpolated jaggies
-    // const obj = pda.tracks[0].timestamped_objects.find((obj) => {
-    //   return nanos(obj.time_offset) > ct;
+    // const obj = pda.tracks[0].timestampedObjects.find((obj) => {
+    //   return nanos(obj.timeOffset) > ct;
     // });
 
     return obj ? [...prev, obj] : prev;
@@ -138,10 +135,10 @@ function renderFrame() {
 
     // Draw a rectangle around them
     // ctx.rect(
-    //   width * obj.normalized_bounding_box.left,
-    //   height * obj.normalized_bounding_box.top,
-    //   width * (obj.normalized_bounding_box.right - obj.normalized_bounding_box.left),
-    //   height * (obj.normalized_bounding_box.bottom - obj.normalized_bounding_box.top),
+    //   width * obj.normalizedBoundingbox.left,
+    //   height * obj.normalizedBoundingbox.top,
+    //   width * (obj.normalizedBoundingbox.right - obj.normalizedBoundingbox.left),
+    //   height * (obj.normalizedBoundingbox.bottom - obj.normalizedBoundingbox.top),
     // );
     // ctx.strokeStyle = "#F00";
     // ctx.stroke();
@@ -215,14 +212,14 @@ fetch("./data.json")
     start();
   });
 
-// Convert API seconds + nanoseconds to a single number
-function nanos(t: SegmentTime) {
-  return (t.seconds || 0) * 1000000000 + (t.nanos || 0);
+// Convert string in format "X.XXs" to nanoseconds
+function nanos(t: string) {
+  return parseFloat(t) * 1000000000;
 }
 
 // Checks if a segment is within a specified timeframe
 function segmentInFrame(t: Segment, ct: number) {
-  return nanos(t.start_time_offset) <= ct && nanos(t.end_time_offset) >= ct;
+  return nanos(t.startTimeOffset) <= ct && nanos(t.endTimeOffset) >= ct;
 }
 
 function debugData(obj: any) {
